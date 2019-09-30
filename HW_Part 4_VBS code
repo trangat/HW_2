@@ -1,0 +1,95 @@
+Sub Stocks():
+
+'LOGIC:
+'Define all variables and create summary table with titles
+'Loop through all worksheets
+'last row - use to figure out the loop?
+'import tickers
+'calculate yearly change -> end - open
+'calculate percent change --> change / open
+'add up total stock volume
+'conditional formatting
+
+'Define worksheet and loop through all worksheets
+Dim ws As Worksheet
+
+For Each ws In Worksheets
+
+    'Define ticker symbol and total volume variables
+    Dim Ticker As String
+    Dim Total_Volume As Double
+
+    'Define year open and year close variables
+    Dim yearOpen As Double
+    Dim yearClose As Double
+
+    'summary table row variable
+    Dim SummaryRow As Integer
+    SummaryRow = 2
+
+    'print summary table headers
+    ws.Cells(1, 10).Value = "Tickers"
+    ws.Cells(1, 11).Value = "Yearly Change"
+    ws.Cells(1, 12).Value = "Percent Change"
+    ws.Cells(1, 13).Value = "Total Stock Volume"
+
+    'find the last row
+    Dim lastRow As Double
+    lastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+
+    For i = 2 To lastRow
+        'if no opening cost, skip row; then put ticker symbol if not
+        If (ws.Cells(i, 3).Value = 0) Then
+            If (ws.Cells(i + 1).Value <> ws.Cells(i, 1).Value) Then
+                Ticker = ws.Cells(i, 1).Value
+            End If
+        'Add up total volume
+        ElseIf (ws.Cells(i + 1, 1).Value = ws.Cells(i, 1).Value) Then
+            Total_Volume = Total_Volume + ws.Cells(i, 7).Value
+            'if last cell <> this cell, set yearOpen
+            If (ws.Cells(i - 1, 1).Value <> ws.Cells(i, 1).Value) Then
+                yearOpen = ws.Cells(i, 3).Value
+            End If
+        Else
+            'set ticker symbol variable
+            Ticker = ws.Cells(i, 1).Value
+            'add to total volume
+            Total_Volume = Total_Volume + ws.Cells(i, 7).Value
+            'set yearClose
+            yearClose = ws.Cells(i, 6).Value
+            'print in summary table
+            ws.Cells(SummaryRow, 10).Value = Ticker
+            ws.Cells(SummaryRow, 13).Value = Total_Volume
+            
+            'AVOID DIVIDING BY 0
+            If (Total_Volume > 0) Then
+                ws.Cells(SummaryRow, 11).Value = yearClose - yearOpen
+                
+                    'if > 0 change the color to green
+                    If (ws.Cells(SummaryRow, 11).Value > 0) Then
+                        ws.Cells(SummaryRow, 11).Interior.ColorIndex = 4
+                    Else
+                        ws.Cells(SummaryRow, 11).Interior.ColorIndex = 3
+                    End If
+                'print percentage change in summary table
+                ws.Cells(SummaryRow, 12).Value = ws.Cells(SummaryRow, 11).Value / yearOpen
+            Else
+                'set yearly and % change to zero if no stock data
+                ws.Cells(SummaryRow, 11).Value = 0
+                ws.Cells(SummaryRow, 12).Value = 0
+            End If
+            'set cell format to percent
+            ws.Cells(SummaryRow, 12).Style = "percent"
+            'reset total volume
+            Total_Volume = 0
+            'next summary row
+            SummaryRow = SummaryRow + 1
+        End If
+    Next i
+
+Next ws
+
+'## Challenge if you have time
+
+End Sub
+
